@@ -11,7 +11,7 @@ st.markdown("""
         background-color: #262730;
         border: 1px solid #3d3f4b;
         padding: 5% 10%;
-        border-radius: 12px 12px 0px 0px; /* Flatten bottom for the frequency text */
+        border-radius: 12px 12px 0px 0px; 
         border-bottom: none;
     }
     .freq-box {
@@ -35,18 +35,18 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("🎯 4-Player Carrom Rating Tracker")
-st.caption("Live multi-player dashboard.")
+st.caption("Live multi-player rating dashboard.")
 
 # --- DATA DICTIONARIES ---
 multipliers = {
     'Near Base': 0.7, 'Far Base': 0.9, 'Close Free Inch': 0.9, 'Close Crowd Inch': 1.0,
     'Medium Free Inch': 0.95, 'Medium Crowd Inch': 1.15, 'Far Free Inch': 1.15, 'Far Crowd Inch': 1.3,
     'Single Rebound': 1.2, 'Double Rebound': 1.5, 'Red Cover': 1.5, 'Red Attempt': 0.5,
-    'Return Shot': 1.1, '3-Shot Streak': 0.7, '4-Shot Streak': 0.8, '5+ Shot Streak': 1.0
+    'Return Shot': 1.1, 'Jhaanke Bok': 1.0, '3-Shot Streak': 0.7, '4-Shot Streak': 0.8, '5+ Shot Streak': 1.0
 }
 
 penalties = {
-    'Opponent Coin Only': 0.7, 'Opponent Coin + Yours': 0.4, 'Pocketed Striker': 0.75, 'Double Fine': 0.65
+    'Opponent Coin Only': 0.7, 'Pocketed Striker': 0.75, 'Double Fine': 0.65
 }
 
 coin_pot_keys = [k for k in multipliers.keys() if 'Streak' not in k and 'Attempt' not in k]
@@ -126,7 +126,6 @@ for i, p in enumerate(players):
             delta="Sub-Zero Penalty" if current_rating < 0 else "Active",
             delta_color="inverse" if current_rating < 0 else "off"
         )
-        # Custom UI block attached to the bottom of the metric card
         st.markdown(f"""
         <div class="freq-box">
             🔥 {top_shot} ({shot_count})<br>
@@ -147,7 +146,6 @@ for i, p in enumerate(players):
         
         st.progress(capped_val / 10.0, text=f"Positive Score Cap Progression: {capped_val:.2f} / 10.00")
         
-        # Display Stats compactly
         stat_cols = st.columns(2)
         stat_cols[0].markdown(f"🪙 **Net Coins Pocketed:** `{net_c}` &nbsp;&nbsp; *(Pots: {p_c} | Fouls: {f_c})*")
         stat_cols[1].markdown(f"🔥 **Top Shot:** `{top_shot}` ({shot_count}) &nbsp;&nbsp;|&nbsp;&nbsp; ❌ **Top Foul:** `{top_foul}` ({foul_count})")
