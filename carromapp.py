@@ -35,7 +35,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("🎯 4-Player Club Carrom Tracker")
-st.caption("Live multi-player dashboard with Net Coin tracking and Shot Frequencies.")
+st.caption("Live multi-player dashboard.")
 
 # --- DATA DICTIONARIES ---
 multipliers = {
