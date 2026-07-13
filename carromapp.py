@@ -34,7 +34,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🎯 4-Player Club Carrom Tracker")
+st.title("🎯 4-Player Carrom Rating Tracker")
 st.caption("Live multi-player dashboard.")
 
 # --- DATA DICTIONARIES ---
