@@ -1,18 +1,3 @@
-I see exactly what happened from looking at Screenshot_2026-07-13-22-19-08-01_e4424258c8b8649f6e67d283a50a2cbc.jpg.
-
-The error `StreamlitAPIException` happens because of a strict rule in Streamlit: **You cannot modify a widget's state (like flipping the "Match Won" switch back to off) *after* the widget has already been drawn on the screen.** Because the Save button was at the bottom of the script, it was trying to reset the toggle switch after it was already rendered, causing it to crash.
-
-To fix this permanently, I have rewritten the save and reset functions to use **Streamlit Callbacks (`on_click`)**. This forces the app to reset the values *before* it redraws the screen, completely avoiding the error. I also fixed the player name text box so it correctly links to your data exports.
-
-### How to fix it:
-
-1. Open `carromapp.py` in your GitHub repository.
-2. **Delete everything** inside the file so it is completely empty.
-3. Paste the corrected code below and commit the changes.
-
-### The Corrected `app.py`
-
-```python
 import streamlit as st
 import pandas as pd
 import datetime
