@@ -267,4 +267,3 @@ if st.session_state.match_log:
             use_container_width=True
         )
 
-```
