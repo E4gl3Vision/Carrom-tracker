@@ -5,7 +5,6 @@ import datetime
 st.set_page_config(page_title="4-Player Carrom Tracker", layout="wide", initial_sidebar_state="collapsed")
 
 # --- SAFE TOAST NOTIFICATIONS ---
-# (Ensures success messages survive the page refresh after saving)
 if "flash_msg" in st.session_state:
     st.toast(st.session_state.flash_msg["msg"], icon=st.session_state.flash_msg["icon"])
     del st.session_state.flash_msg
@@ -110,7 +109,7 @@ def get_most_frequent(p):
             
     return top_shot, top_shot_val, top_foul, top_foul_val
 
-# --- STREAMLIT CALLBACKS (FIXES THE CRASH) ---
+# --- STREAMLIT CALLBACKS ---
 def reset_player_callback(p):
     st.session_state[f"{p}_won"] = False
     for action in list(multipliers.keys()) + list(penalties.keys()):
@@ -190,13 +189,10 @@ for i, p in enumerate(players):
         
         st.write("")
         
-        setup_cols = st.columns([2, 1, 1])
-        # Direct binding to the state variable for player name fixes the ghost-save bug
+        # --- Adjusted Setup Row ---
+        setup_cols = st.columns([3, 1])
         setup_cols[0].text_input("Edit Name", key=f"{p}_name", label_visibility="collapsed")
-        setup_cols[1].toggle("🏆 Match Won (+1.0)", key=f"{p}_won")
-        
-        # Uses callback to prevent StreamlitAPIException
-        setup_cols[2].button(f"🧹 Reset Form", key=f"reset_{p}", use_container_width=True, on_click=reset_player_callback, args=(p,))
+        setup_cols[1].button(f"🧹 Reset Form", key=f"reset_{p}", use_container_width=True, on_click=reset_player_callback, args=(p,))
             
         st.write("---")
         
@@ -245,11 +241,21 @@ for i, p in enumerate(players):
                     st.session_state[f"{p}_{foul}"] += 1
                     st.rerun()
                 c_col.write("")
+                
+        # --- NEW DEDICATED MATCH WON BUTTON (AT BOTTOM OF TAB) ---
+        st.write("---")
+        if st.session_state[f"{p}_won"]:
+            if st.button("✅ MATCH WON BONUSED (+1.0 applied) — Tap to Remove", key=f"btn_won_{p}", use_container_width=True):
+                st.session_state[f"{p}_won"] = False
+                st.rerun()
+        else:
+            if st.button("🏆 REGISTER MATCH WIN (+1.0 Bonus)", key=f"btn_won_{p}", use_container_width=True, type="primary"):
+                st.session_state[f"{p}_won"] = True
+                st.rerun()
 
 st.divider()
 
 # --- SAVE & EXPORT LOGIC ---
-# Uses callback to execute the save safely BEFORE rendering the UI
 st.button("💾 SAVE MATCH FOR ALL ACTIVE PLAYERS", type="primary", use_container_width=True, on_click=save_match_callback)
 
 # --- GOOGLE SHEETS EXPORT DASHBOARD ---
@@ -266,4 +272,3 @@ if st.session_state.match_log:
             mime='text/csv',
             use_container_width=True
         )
-
