@@ -40,7 +40,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("🎯 4-Player Club Carrom Tracker")
-st.caption("Live multi-player dashboard. Base rating starts at 2.0.")
+st.caption("Carrom Rating Calculator.")
 
 # --- DATA DICTIONARIES ---
 multipliers = {
