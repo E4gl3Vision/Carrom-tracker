@@ -84,97 +84,7 @@ def get_capped_pos(p):
 def calculate_rating(p):
     capped_pos = get_capped_pos(p)
     total_foul = sum(st.session_state[f"{p}_{foul}"] * w for foul, w in penalties.items())
-    # Base 2.0 starting rating applied here
     return 2.0 + capped_pos - total_foul
-
-def get_net_coins(p):
-    pots = sum(st.session_state[f"{p}_{k}"] for k in coin_pot_keys)
-    fouls = sum(st.session_state[f"{p}_{k}"] for k in foul_keys)
-    return pots - fouls, pots, fouls
-
-def get_most_frequent(p):
-    top_shot = "None"
-    top_shot_val = 0
-    for action in multipliers.keys():
-        val = st.session_state[f"{p}_{action}"]
-        if val > top_shot_val:
-            top_shot_val = val
-            top_shot = action
-            
-    top_foul = "None"
-    top_foul_val = 0
-    for foul in penalties.keys():
-        val = st.session_state[f"{p}_{foul}"]
-        if val > top_foul_val:
-            top_foul_val = val
-            top_foul = foul
-            
-    return top_shot, top_shot_val, top_foul, top_foul_val
-
-# --- STREAMLIT CALLBACKS ---
-def reset_player_callback(p):
-    st.session_state[f"{p}_won"] = False
-    for action in list(multipliers.keys()) + list(penalties.keys()):
-        st.session_state[f"{p}_{action}"] = 0
-
-def save_match_callback():
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    players_saved = 0
-    
-    for p in players:
-        total_actions = sum(st.session_state[f"{p}_{a}"] for a in list(multipliers.keys()) + list(penalties.keys()))
-        if total_actions > 0 or st.session_state[f"{p}_won"]:
-            net_c, _, _ = get_net_coins(p)
-            top_shot, _, top_foul, _ = get_most_frequent
-    header {visibility: hidden;}
-</style>
-""", unsafe_allow_html=True)
-
-st.title("🎯 4-Player Club Carrom Tracker")
-st.caption("Live multi-player rating dashboard.")
-
-# --- DATA DICTIONARIES ---
-multipliers = {
-    'Near Base': 0.7, 'Far Base': 0.9, 'Close Free Inch': 0.9, 'Close Crowd Inch': 1.0,
-    'Medium Free Inch': 0.95, 'Medium Crowd Inch': 1.15, 'Far Free Inch': 1.15, 'Far Crowd Inch': 1.3,
-    'Single Rebound': 1.2, 'Double Rebound': 1.5, 'Red Cover': 1.5, 'Red Attempt': 0.5,
-    'Return Shot': 1.1, 'Jhaanke Bok': 1.0, '3-Shot Streak': 0.7, '4-Shot Streak': 0.8, '5+ Shot Streak': 1.0
-}
-
-penalties = {
-    'Opponent Coin Only': 0.7, 'Pocketed Striker': 0.75, 'Double Fine': 0.65
-}
-
-coin_pot_keys = [k for k in multipliers.keys() if 'Streak' not in k and 'Attempt' not in k]
-foul_keys = list(penalties.keys())
-players = ["P1", "P2", "P3", "P4"]
-
-# --- INITIALIZE STATE ---
-if 'match_log' not in st.session_state:
-    st.session_state.match_log = []
-if 'match_id' not in st.session_state:
-    st.session_state.match_id = 1
-
-for p in players:
-    if f"{p}_name" not in st.session_state:
-        st.session_state[f"{p}_name"] = f"Player {p[1]}"
-    if f"{p}_won" not in st.session_state:
-        st.session_state[f"{p}_won"] = False
-    for action in list(multipliers.keys()) + list(penalties.keys()):
-        if f"{p}_{action}" not in st.session_state:
-            st.session_state[f"{p}_{action}"] = 0
-
-# --- HELPER FUNCTIONS ---
-def get_capped_pos(p):
-    raw_pos = sum(st.session_state[f"{p}_{action}"] * w for action, w in multipliers.items())
-    if st.session_state[f"{p}_won"]:
-        raw_pos += 1.0
-    return min(10.0, raw_pos)
-
-def calculate_rating(p):
-    capped_pos = get_capped_pos(p)
-    total_foul = sum(st.session_state[f"{p}_{foul}"] * w for foul, w in penalties.items())
-    return capped_pos - total_foul
 
 def get_net_coins(p):
     pots = sum(st.session_state[f"{p}_{k}"] for k in coin_pot_keys)
@@ -252,8 +162,8 @@ for i, p in enumerate(players):
         st.metric(
             label=f"{st.session_state[f'{p}_name']} (🪙 {net_c} Coins)", 
             value=f"{current_rating:.2f}",
-            delta="Sub-Zero Penalty" if current_rating < 0 else "Active",
-            delta_color="inverse" if current_rating < 0 else "off"
+            delta="Below 2.0 Baseline" if current_rating < 2.0 else "Active",
+            delta_color="inverse" if current_rating < 2.0 else "off"
         )
         st.markdown(f"""
         <div class="freq-box">
@@ -280,7 +190,6 @@ for i, p in enumerate(players):
         
         st.write("")
         
-        # --- Adjusted Setup Row ---
         setup_cols = st.columns([3, 1])
         setup_cols[0].text_input("Edit Name", key=f"{p}_name", label_visibility="collapsed")
         setup_cols[1].button(f"🧹 Reset Form", key=f"reset_{p}", use_container_width=True, on_click=reset_player_callback, args=(p,))
@@ -333,14 +242,14 @@ for i, p in enumerate(players):
                     st.rerun()
                 c_col.write("")
                 
-        # --- NEW DEDICATED MATCH WON BUTTON (AT BOTTOM OF TAB) ---
+        # --- DEDICATED MATCH WON BUTTON ---
         st.write("---")
         if st.session_state[f"{p}_won"]:
-            if st.button("✅ MATCH WON BONUSED (+1.0 applied) — Tap to Remove", key=f"btn_won_{p}", use_container_width=True):
+            if st.button("✅ MATCH WON BONUSED (+1.0 applied) — Tap to Remove", key=f"btn_won_remove_{p}", use_container_width=True):
                 st.session_state[f"{p}_won"] = False
                 st.rerun()
         else:
-            if st.button("🏆 REGISTER MATCH WIN (+1.0 Bonus)", key=f"btn_won_{p}", use_container_width=True, type="primary"):
+            if st.button("🏆 REGISTER MATCH WIN (+1.0 Bonus)", key=f"btn_won_add_{p}", use_container_width=True, type="primary"):
                 st.session_state[f"{p}_won"] = True
                 st.rerun()
 
@@ -363,3 +272,4 @@ if st.session_state.match_log:
             mime='text/csv',
             use_container_width=True
         )
+        
