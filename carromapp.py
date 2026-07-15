@@ -126,7 +126,6 @@ def save_match_callback():
         if total_actions > 0 or st.session_state[f"{p}_won"]:
             net_c, _, _ = get_net_coins(p)
             top_shot, _, top_foul, _ = get_most_frequent
-    }
     header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
