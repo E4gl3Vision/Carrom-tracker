@@ -44,7 +44,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("🎯 4-Player Club Carrom Tracker")
-st.caption("Live multi-player dashboard. Base rating starts at 2.0.")
+st.caption("Live Carrom Rating Calculator.")
 
 # --- DATA DICTIONARIES ---
 ROSTER = [
@@ -180,7 +180,7 @@ def save_match_callback():
 # --- MODAL DIALOG COMPONENT (POST-GAME SUMMARY WINDOW) ---
 @st.dialog("🏆 Post-Game Match Summary", width="large")
 def post_game_summary():
-    st.caption("Perfect for screenshots! Contains full match breakdown.")
+    st.caption("FINAL RATING SCORECARD.")
     
     if len(st.session_state.last_match_summary) > 0:
         # Dynamically create columns based on active players
