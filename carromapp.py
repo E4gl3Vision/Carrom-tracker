@@ -295,5 +295,5 @@ for i, p in enumerate(players):
                 if action in coin_pot_keys:
                     c_col.caption(f"**{action}** ({weight}x) 🪙")
                 else:
-                    c_col.caption(f"**{action
+                    c_col.caption(f"**{action}
                                        
