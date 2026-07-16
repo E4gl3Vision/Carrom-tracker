@@ -108,9 +108,12 @@ def get_net_coins(p):
     return pots - fouls, pots, fouls
 
 def get_accuracy(p):
-    """Calculates accuracy by factoring in pots, missed empty turns, and shot-consuming fouls."""
+    """Calculates accuracy by factoring in pots, missed empty turns, and ALL shot-consuming fouls."""
     pots = sum(st.session_state[f"{p}_{k}"] for k in coin_pot_keys)
-    other_shots = st.session_state[f"{p}_Red Attempt"] + st.session_state[f"{p}_Opponent Coin Only"] + st.session_state[f"{p}_Pocketed Striker"]
+    
+    # Automatically sums all fouls + red attempts as missed/wasted shots
+    foul_shots = sum(st.session_state[f"{p}_{k}"] for k in foul_keys)
+    other_shots = st.session_state[f"{p}_Red Attempt"] + foul_shots
     misses = st.session_state[f"{p}_Missed_Shot"]
     
     total_shots = pots + other_shots + misses
@@ -295,5 +298,50 @@ for i, p in enumerate(players):
                 if action in coin_pot_keys:
                     c_col.caption(f"**{action}** ({weight}x) 🪙")
                 else:
-                    c_col.caption(f"**{action}
-                                       
+                    c_col.caption(f"**{action}** ({weight}x)")
+                
+                b_cols = c_col.columns([1, 1.5, 1])
+                b_cols[0].button("➖", key=f"sub_{p}_{action}", use_container_width=True, on_click=adjust_counter, args=(p, action, -1))
+                b_cols[1].markdown(f"<h4 style='text-align: center; margin:0;'>{st.session_state[f'{p}_{action}']}</h4>", unsafe_allow_html=True)
+                b_cols[2].button("➕", key=f"add_{p}_{action}", use_container_width=True, on_click=adjust_counter, args=(p, action, 1))
+                c_col.write("") 
+                
+        with col_neg:
+            st.subheader("⚠️ Fouls & Penalties")
+            grid_cols_neg = st.columns(2)
+            for idx, (foul, penalty) in enumerate(penalties.items()):
+                c_col = grid_cols_neg[idx % 2]
+                c_col.caption(f"**{foul}** (-{penalty}x) ❌")
+                
+                b_cols = c_col.columns([1, 1.5, 1])
+                b_cols[0].button("➖", key=f"sub_{p}_{foul}", use_container_width=True, on_click=adjust_counter, args=(p, foul, -1))
+                b_cols[1].markdown(f"<h4 style='text-align: center; margin:0; color: #ff4b4b;'>{st.session_state[f'{p}_{foul}']}</h4>", unsafe_allow_html=True)
+                b_cols[2].button("➕", key=f"add_{p}_{foul}", use_container_width=True, on_click=adjust_counter, args=(p, foul, 1))
+                c_col.write("")
+                
+        # --- SAFE SINGLE-BUTTON MATCH WON TOGGLE ---
+        st.write("---")
+        btn_label = "✅ MATCH WON BONUSED (+1.0 applied) — Tap to Remove" if st.session_state[f"{p}_won"] else "🏆 REGISTER MATCH WIN (+1.0 Bonus)"
+        btn_type = "secondary" if st.session_state[f"{p}_won"] else "primary"
+        st.button(btn_label, key=f"btn_won_{p}", use_container_width=True, type=btn_type, on_click=toggle_win, args=(p,))
+
+st.divider()
+
+# --- SAVE & EXPORT LOGIC ---
+st.button("💾 SAVE MATCH FOR ALL ACTIVE PLAYERS", type="primary", use_container_width=True, on_click=save_match_callback)
+
+# --- GOOGLE SHEETS EXPORT DASHBOARD ---
+if st.session_state.match_log:
+    with st.expander("📂 View Session Log & Export Data", expanded=True):
+        log_df = pd.DataFrame(st.session_state.match_log)
+        st.dataframe(log_df, use_container_width=True)
+        
+        csv_data = log_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download CSV Format", 
+            data=csv_data, 
+            file_name=f"carrom_4p_export_{datetime.datetime.now().strftime('%Y%m%d')}.csv", 
+            mime='text/csv',
+            use_container_width=True
+        )
+        
