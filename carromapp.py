@@ -9,6 +9,11 @@ if "flash_msg" in st.session_state:
     st.toast(st.session_state.flash_msg["msg"], icon=st.session_state.flash_msg["icon"])
     del st.session_state.flash_msg
 
+# --- WIN CELEBRATION (fires once, right after a win is registered) ---
+if st.session_state.get("win_celebrate"):
+    st.balloons()
+    del st.session_state["win_celebrate"]
+
 # ============================================================
 #  DESIGN SYSTEM
 #  A carrom board's own materials, told back to itself:
@@ -36,6 +41,31 @@ st.markdown("""
 }
 
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes coinFlip {
+    0%   { transform: rotateY(0deg) scale(0.7); opacity: 0; }
+    50%  { transform: rotateY(180deg) scale(1.05); opacity: 1; }
+    100% { transform: rotateY(360deg) scale(1); opacity: 1; }
+}
+@keyframes pulseGold {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(228,194,69,0.55), 0 6px 14px rgba(0,0,0,0.35); }
+    50%      { box-shadow: 0 0 20px 6px rgba(228,194,69,0.55), 0 6px 14px rgba(0,0,0,0.35); }
+}
+@keyframes shimmerMove {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+@keyframes crownBob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .coin-card, .coin-badge, .coin-card.leader { animation: none !important; }
+}
 
 .stApp {
     background:
@@ -120,6 +150,23 @@ h3, .stMarkdown h3 {
     text-align: center;
     box-shadow: 0 6px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
     margin-bottom: 0.6rem;
+    animation: fadeInUp 0.5s ease both;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.coin-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 22px rgba(0,0,0,0.45);
+}
+.coin-card.leader {
+    border-top-color: var(--gold-bright);
+    animation: fadeInUp 0.5s ease both, pulseGold 2.4s ease-in-out infinite;
+}
+.coin-card .crown {
+    position: absolute;
+    top: -14px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.1rem;
+    animation: crownBob 1.8s ease-in-out infinite;
 }
 .coin-card .pname {
     font-family: 'Oswald', sans-serif;
@@ -137,7 +184,11 @@ h3, .stMarkdown h3 {
     background: radial-gradient(circle at 35% 30%, var(--coin-white) 0%, #cfc4a8 45%, var(--coin-black) 100%);
     border: 2px solid var(--gold);
     box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 0 8px rgba(0,0,0,0.4);
+    animation: coinFlip 0.6s ease-out both;
+    transform-style: preserve-3d;
+    transition: transform 0.2s ease;
 }
+.coin-card:hover .coin-badge { transform: scale(1.08); }
 .coin-badge span {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
@@ -190,7 +241,8 @@ button[data-baseweb="tab"][aria-selected="true"] {
     color: var(--gold-bright) !important;
     box-shadow: inset 0 0 0 1px var(--gold);
 }
-.stTabs [data-baseweb="tab-highlight"] { background-color: var(--gold) !important; }
+.stTabs [data-baseweb="tab-highlight"] { background-color: var(--gold) !important; transition: left 0.25s ease, width 0.25s ease; }
+button[data-baseweb="tab"] { transition: color 0.15s ease, background 0.15s ease; }
 
 /* ---------- BUTTONS ---------- */
 .stButton > button {
@@ -201,6 +253,7 @@ button[data-baseweb="tab"][aria-selected="true"] {
     transition: transform 0.06s ease, box-shadow 0.15s ease;
 }
 .stButton > button:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.35); }
+.stButton > button:active { transform: translateY(1px) scale(0.97); box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important; }
 .stButton > button[kind="primary"] {
     background: linear-gradient(160deg, var(--gold-bright), var(--gold)) !important;
     color: var(--wood-dark) !important;
@@ -215,7 +268,12 @@ button[data-baseweb="tab"][aria-selected="true"] {
 }
 
 /* ---------- PROGRESS BAR (fills like the board's scoring cap) ---------- */
-.stProgress > div > div > div { background: linear-gradient(90deg, var(--gold), var(--gold-bright)) !important; }
+.stProgress > div > div > div {
+    background: linear-gradient(90deg, var(--gold), var(--gold-bright), var(--gold)) !important;
+    background-size: 200% 100%;
+    animation: shimmerMove 1.8s linear infinite;
+    transition: width 0.4s ease;
+}
 .stProgress > div > div { background: rgba(255,255,255,0.08) !important; border-radius: 8px; }
 
 /* ---------- INPUTS / SELECT ---------- */
@@ -356,6 +414,8 @@ def adjust_counter(p, action, delta):
 
 def toggle_win(p):
     st.session_state[f"{p}_won"] = not st.session_state[f"{p}_won"]
+    if st.session_state[f"{p}_won"]:
+        st.session_state["win_celebrate"] = True
 
 def reset_player_callback(p):
     st.session_state[f"{p}_won"] = False
@@ -441,20 +501,28 @@ if st.session_state.show_summary:
 
 # --- LIVE SCOREBOARD DASHBOARD (coin-badge cards) ---
 st.write("### 🏆 Live Match Scoreboard")
+
+# Work out who's currently leading (only crown someone once ratings have moved)
+ratings = {p: calculate_rating(p) for p in players}
+has_activity = any(r != 2.0 for r in ratings.values())
+leader_p = max(ratings, key=ratings.get) if has_activity else None
+
 dash_cols = st.columns(4)
 for i, p in enumerate(players):
-    current_rating = calculate_rating(p)
+    current_rating = ratings[p]
     net_c, _, _ = get_net_coins(p)
     acc_pct, _, _ = get_accuracy(p)
     top_shot, shot_count, top_foul, foul_count = get_most_frequent(p)
     below = current_rating < 2.0
+    is_leader = (p == leader_p)
 
     with dash_cols[i]:
         st.markdown(f"""
-        <div class="coin-card">
+        <div class="coin-card {'leader' if is_leader else ''}" style="animation-delay:{i*0.08:.2f}s" title="{st.session_state[f'{p}_name']}: {current_rating:.2f} rating, {acc_pct:.0f}% accuracy">
+            {'<div class="crown">&#128081;</div>' if is_leader else ''}
             <div class="pname">{st.session_state[f'{p}_name']}</div>
             <div class="coin-badge"><span>{current_rating:.2f}</span></div>
-            <div class="status {'below' if below else ''}">{'Below 2.0 Baseline' if below else 'Active'}</div>
+            <div class="status {'below' if below else ''}">{'Below 2.0 Baseline' if below else ('In The Lead' if is_leader else 'Active')}</div>
             <div class="substats">🪙 {net_c} net &nbsp;|&nbsp; 🎯 {acc_pct:.0f}% acc</div>
             <div class="freq-box">
                 🔥 {top_shot} ({shot_count})<br>
@@ -468,7 +536,7 @@ st.divider()
 tabs = st.tabs([st.session_state[f"{p}_name"] for p in players])
 
 for i, p in enumerate(players):
-    with tabs[i]:
+    with tabs[i]
         capped_val = get_capped_pos(p)
         net_c, p_c, _ = get_net_coins(p)
         acc_pct, pots, total_shots = get_accuracy(p)
