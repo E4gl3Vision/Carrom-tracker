@@ -536,7 +536,7 @@ st.divider()
 tabs = st.tabs([st.session_state[f"{p}_name"] for p in players])
 
 for i, p in enumerate(players):
-    with tabs[i]
+    with tabs[i]:
         capped_val = get_capped_pos(p)
         net_c, p_c, _ = get_net_coins(p)
         acc_pct, pots, total_shots = get_accuracy(p)
