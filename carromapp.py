@@ -9,41 +9,250 @@ if "flash_msg" in st.session_state:
     st.toast(st.session_state.flash_msg["msg"], icon=st.session_state.flash_msg["icon"])
     del st.session_state.flash_msg
 
-# --- CUSTOM UI CSS TWEAKS ---
+# ============================================================
+#  DESIGN SYSTEM
+#  A carrom board's own materials, told back to itself:
+#  walnut frame, bleached-cream playing field, felt-green
+#  scoring turf, and the two coin colours (black/ivory) plus
+#  the red queen as the single "alert" accent.
+# ============================================================
 st.markdown("""
 <style>
-    div[data-testid="metric-container"] {
-        background-color: #262730;
-        border: 1px solid #3d3f4b;
-        padding: 5% 10%;
-        border-radius: 12px 12px 0px 0px; 
-        border-bottom: none;
-    }
-    .freq-box {
-        background-color: #1e1f26;
-        border: 1px solid #3d3f4b;
-        border-top: none;
-        border-radius: 0px 0px 12px 12px;
-        padding: 5px 10%;
-        font-size: 0.8rem;
-        color: #94a3b8;
-        margin-bottom: 15px;
-        text-align: center;
-    }
-    button[data-baseweb="tab"] {
-        font-size: 1.1rem !important;
-        padding-top: 15px !important;
-        padding-bottom: 15px !important;
-    }
-    header {visibility: hidden;}
-    div[role="dialog"] {
-        border-radius: 16px;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root {
+    --wood-dark: #2C1810;
+    --wood-mid: #5C3A21;
+    --wood-light: #8A5A34;
+    --cream: #F2E6CC;
+    --cream-dim: #D9C9A3;
+    --felt: #1B4332;
+    --felt-light: #2D6A4F;
+    --gold: #C9A227;
+    --gold-bright: #E4C245;
+    --coin-black: #171512;
+    --coin-white: #F5F0E6;
+    --queen-red: #B23A2E;
+}
+
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+
+.stApp {
+    background:
+        radial-gradient(ellipse at top, #241108 0%, #140b06 55%, #0d0704 100%);
+    color: var(--cream);
+}
+
+header { visibility: hidden; }
+#MainMenu { visibility: hidden; }
+
+/* ---------- HERO BANNER ---------- */
+.carrom-hero {
+    position: relative;
+    margin: -1rem -1rem 1.5rem -1rem;
+    padding: 2.2rem 2rem 1.6rem 2rem;
+    background:
+        repeating-linear-gradient(100deg, rgba(0,0,0,0.10) 0px, rgba(0,0,0,0.10) 2px, transparent 2px, transparent 22px),
+        linear-gradient(135deg, var(--wood-dark) 0%, var(--wood-mid) 55%, var(--wood-light) 100%);
+    border-bottom: 4px solid var(--gold);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
+.carrom-hero::before, .carrom-hero::after {
+    content: "";
+    position: absolute;
+    top: 14px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--coin-white), var(--coin-black) 75%);
+    box-shadow: 0 0 0 3px rgba(201,162,39,0.35);
+}
+.carrom-hero::before { left: 18px; }
+.carrom-hero::after { right: 18px; }
+.carrom-hero h1 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 2.3rem;
+    margin: 0;
+    color: var(--cream);
+    text-shadow: 0 2px 0 rgba(0,0,0,0.4);
+}
+.carrom-hero p {
+    margin: 0.35rem 0 0 0;
+    color: var(--cream-dim);
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+}
+.carrom-hero .tag {
+    display: inline-block;
+    margin-top: 0.7rem;
+    padding: 0.2rem 0.7rem;
+    border: 1px solid var(--gold);
+    border-radius: 999px;
+    color: var(--gold-bright);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+}
+
+/* ---------- SECTION LABELS ---------- */
+h3, .stMarkdown h3 {
+    font-family: 'Oswald', sans-serif !important;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-size: 1.05rem !important;
+    color: var(--gold-bright) !important;
+    border-left: 3px solid var(--gold);
+    padding-left: 0.6rem;
+    margin-top: 1.2rem !important;
+}
+.stMarkdown h4 { font-family: 'Oswald', sans-serif !important; color: var(--cream); }
+
+/* ---------- PLAYER SCOREBOARD CARDS (coin-badge design) ---------- */
+.coin-card {
+    position: relative;
+    background: linear-gradient(160deg, var(--felt) 0%, #123526 100%);
+    border: 1px solid rgba(201,162,39,0.35);
+    border-top: 3px solid var(--gold);
+    border-radius: 10px;
+    padding: 1rem 0.9rem 0.8rem 0.9rem;
+    text-align: center;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+    margin-bottom: 0.6rem;
+}
+.coin-card .pname {
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.92rem;
+    color: var(--cream);
+    margin-bottom: 0.55rem;
+}
+.coin-badge {
+    width: 74px; height: 74px;
+    margin: 0 auto 0.5rem auto;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 35% 30%, var(--coin-white) 0%, #cfc4a8 45%, var(--coin-black) 100%);
+    border: 2px solid var(--gold);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 0 8px rgba(0,0,0,0.4);
+}
+.coin-badge span {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: var(--wood-dark);
+}
+.coin-card .status {
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+    margin-bottom: 0.4rem;
+}
+.coin-card .status.below { color: var(--queen-red); }
+.coin-card .substats {
+    font-size: 0.8rem;
+    color: var(--cream-dim);
+    margin-bottom: 0.35rem;
+}
+.freq-box {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(201,162,39,0.25);
+    border-radius: 8px;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
+    color: var(--cream-dim);
+    text-align: left;
+}
+
+/* ---------- TABS (styled as the wooden rail dividers) ---------- */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 4px;
+    background: rgba(0,0,0,0.25);
+    padding: 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(201,162,39,0.25);
+}
+button[data-baseweb="tab"] {
+    font-family: 'Oswald', sans-serif !important;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.95rem !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+    color: var(--cream-dim) !important;
+    border-radius: 8px !important;
+}
+button[data-baseweb="tab"][aria-selected="true"] {
+    background: linear-gradient(160deg, var(--felt-light), var(--felt)) !important;
+    color: var(--gold-bright) !important;
+    box-shadow: inset 0 0 0 1px var(--gold);
+}
+.stTabs [data-baseweb="tab-highlight"] { background-color: var(--gold) !important; }
+
+/* ---------- BUTTONS ---------- */
+.stButton > button {
+    border-radius: 8px !important;
+    border: 1px solid rgba(201,162,39,0.4) !important;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    transition: transform 0.06s ease, box-shadow 0.15s ease;
+}
+.stButton > button:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.35); }
+.stButton > button[kind="primary"] {
+    background: linear-gradient(160deg, var(--gold-bright), var(--gold)) !important;
+    color: var(--wood-dark) !important;
+    border: none !important;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.stButton > button[kind="secondary"] {
+    background: rgba(255,255,255,0.05) !important;
+    color: var(--cream) !important;
+}
+
+/* ---------- PROGRESS BAR (fills like the board's scoring cap) ---------- */
+.stProgress > div > div > div { background: linear-gradient(90deg, var(--gold), var(--gold-bright)) !important; }
+.stProgress > div > div { background: rgba(255,255,255,0.08) !important; border-radius: 8px; }
+
+/* ---------- INPUTS / SELECT ---------- */
+.stSelectbox div[data-baseweb="select"] {
+    border-radius: 8px;
+    border: 1px solid rgba(201,162,39,0.35) !important;
+}
+
+/* ---------- EXPANDER / DATAFRAME ---------- */
+.streamlit-expanderHeader, div[data-testid="stExpander"] summary {
+    font-family: 'Oswald', sans-serif !important;
+    color: var(--gold-bright) !important;
+    letter-spacing: 0.02em;
+}
+div[data-testid="stDataFrame"] { border: 1px solid rgba(201,162,39,0.3); border-radius: 8px; overflow: hidden; }
+
+/* ---------- DIALOG ---------- */
+div[role="dialog"] {
+    border-radius: 16px;
+    background: linear-gradient(165deg, #1c1108, #0f0906) !important;
+    border: 1px solid var(--gold);
+}
+
+/* ---------- MISC ---------- */
+hr, .stDivider { border-color: rgba(201,162,39,0.25) !important; }
+.stCaption, [data-testid="stCaptionContainer"] { color: var(--cream-dim) !important; }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🎯 4-Player Club Carrom Tracker")
-st.caption("Live multi-player dashboard. Base rating starts at 2.0. Includes Shot Accuracy %.")
+# --- HERO ---
+st.markdown("""
+<div class="carrom-hero">
+    <h1>&#127919; 4-Player Club Carrom Tracker</h1>
+    <p>Live multi-player dashboard &middot; base rating starts at 2.0 &middot; shot accuracy tracked in real time</p>
+    <span class="tag">LIVE SCORING SESSION</span>
+</div>
+""", unsafe_allow_html=True)
 
 # --- DATA DICTIONARIES ---
 ROSTER = [
@@ -230,7 +439,7 @@ def post_game_summary():
 if st.session_state.show_summary:
     post_game_summary()
 
-# --- LIVE SCOREBOARD DASHBOARD ---
+# --- LIVE SCOREBOARD DASHBOARD (coin-badge cards) ---
 st.write("### 🏆 Live Match Scoreboard")
 dash_cols = st.columns(4)
 for i, p in enumerate(players):
@@ -238,18 +447,19 @@ for i, p in enumerate(players):
     net_c, _, _ = get_net_coins(p)
     acc_pct, _, _ = get_accuracy(p)
     top_shot, shot_count, top_foul, foul_count = get_most_frequent(p)
-    
+    below = current_rating < 2.0
+
     with dash_cols[i]:
-        st.metric(
-            label=f"{st.session_state[f'{p}_name']} (🪙 {net_c} | 🎯 {acc_pct:.0f}%)", 
-            value=f"{current_rating:.2f}",
-            delta="Below 2.0 Baseline" if current_rating < 2.0 else "Active",
-            delta_color="inverse" if current_rating < 2.0 else "off"
-        )
         st.markdown(f"""
-        <div class="freq-box">
-            🔥 {top_shot} ({shot_count})<br>
-            ❌ {top_foul} ({foul_count})
+        <div class="coin-card">
+            <div class="pname">{st.session_state[f'{p}_name']}</div>
+            <div class="coin-badge"><span>{current_rating:.2f}</span></div>
+            <div class="status {'below' if below else ''}">{'Below 2.0 Baseline' if below else 'Active'}</div>
+            <div class="substats">🪙 {net_c} net &nbsp;|&nbsp; 🎯 {acc_pct:.0f}% acc</div>
+            <div class="freq-box">
+                🔥 {top_shot} ({shot_count})<br>
+                ❌ {top_foul} ({foul_count})
+            </div>
         </div>
         """, unsafe_allow_html=True)
 st.divider()
@@ -304,44 +514,4 @@ for i, p in enumerate(players):
                 b_cols[0].button("➖", key=f"sub_{p}_{action}", use_container_width=True, on_click=adjust_counter, args=(p, action, -1))
                 b_cols[1].markdown(f"<h4 style='text-align: center; margin:0;'>{st.session_state[f'{p}_{action}']}</h4>", unsafe_allow_html=True)
                 b_cols[2].button("➕", key=f"add_{p}_{action}", use_container_width=True, on_click=adjust_counter, args=(p, action, 1))
-                c_col.write("") 
-                
-        with col_neg:
-            st.subheader("⚠️ Fouls & Penalties")
-            grid_cols_neg = st.columns(2)
-            for idx, (foul, penalty) in enumerate(penalties.items()):
-                c_col = grid_cols_neg[idx % 2]
-                c_col.caption(f"**{foul}** (-{penalty}x) ❌")
-                
-                b_cols = c_col.columns([1, 1.5, 1])
-                b_cols[0].button("➖", key=f"sub_{p}_{foul}", use_container_width=True, on_click=adjust_counter, args=(p, foul, -1))
-                b_cols[1].markdown(f"<h4 style='text-align: center; margin:0; color: #ff4b4b;'>{st.session_state[f'{p}_{foul}']}</h4>", unsafe_allow_html=True)
-                b_cols[2].button("➕", key=f"add_{p}_{foul}", use_container_width=True, on_click=adjust_counter, args=(p, foul, 1))
-                c_col.write("")
-                
-        # --- SAFE SINGLE-BUTTON MATCH WON TOGGLE ---
-        st.write("---")
-        btn_label = "✅ MATCH WON BONUSED (+1.0 applied) — Tap to Remove" if st.session_state[f"{p}_won"] else "🏆 REGISTER MATCH WIN (+1.0 Bonus)"
-        btn_type = "secondary" if st.session_state[f"{p}_won"] else "primary"
-        st.button(btn_label, key=f"btn_won_{p}", use_container_width=True, type=btn_type, on_click=toggle_win, args=(p,))
-
-st.divider()
-
-# --- SAVE & EXPORT LOGIC ---
-st.button("💾 SAVE MATCH FOR ALL ACTIVE PLAYERS", type="primary", use_container_width=True, on_click=save_match_callback)
-
-# --- GOOGLE SHEETS EXPORT DASHBOARD ---
-if st.session_state.match_log:
-    with st.expander("📂 View Session Log & Export Data", expanded=True):
-        log_df = pd.DataFrame(st.session_state.match_log)
-        st.dataframe(log_df, use_container_width=True)
-        
-        csv_data = log_df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Download CSV Format", 
-            data=csv_data, 
-            file_name=f"carrom_4p_export_{datetime.datetime.now().strftime('%Y%m%d')}.csv", 
-            mime='text/csv',
-            use_container_width=True
-                )
-        
+                c
