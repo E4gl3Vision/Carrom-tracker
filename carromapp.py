@@ -49,7 +49,7 @@ st.caption("Live multi-player dashboard. Base rating starts at 2.0. Includes Sho
 ROSTER = [
     "Abhinaba", "Agniva", "Debottam", "Krish", "Orghya", 
     "Pushpak", "Raktim", "Shakir", "Soumya", 
-    "Guest 1", "Guest 2", "Guest 3", "Guest 4"
+    "Jethu", "Guest 2", "Guest 3", "Guest 4"
 ]
 
 multipliers = {
